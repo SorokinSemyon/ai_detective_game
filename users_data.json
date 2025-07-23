@@ -1,0 +1,10 @@
+{
+  "@sssemyon": {
+    "step": "waiting_players",
+    "code": 39645
+  },
+  "@sveta": {
+    "step": "character_choice",
+    "code": 39645
+  }
+}

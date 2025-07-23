@@ -1,0 +1,5 @@
+crime_scene
+
+Умер victim
+initial_story
+isolation_reason
