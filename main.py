@@ -102,8 +102,7 @@ def handle_character_choice(username: str):
 
 
 if __name__ == "__main__":
-    input("Введите свой username: ")
-    username = input()
+    username = input("Введите свой username: ")
 
     while True:
         usersData = UsersData()
