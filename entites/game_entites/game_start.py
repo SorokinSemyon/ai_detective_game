@@ -56,6 +56,7 @@ class GameStartGenerator:
         self.setting = setting
         self.num_players = num_players
         self.use_cache = use_cache
+        self.path = Path(f"{self.setting}_{self.num_players}/game_start.json")
         self.prompt = Prompt.from_file("game_start", {"{setting}": setting, "{num_players}": str(num_players)})
 
     def generate(self):
@@ -65,5 +66,7 @@ class GameStartGenerator:
             json_data = CachedPromptResult.from_file(mock_path, prompt_executor).value
         else:
             json_data = prompt_executor.generate()
-
         return GameStart.from_json(json_data)
+
+    def exists(self):
+        return (Path("cached") / self.path).exists()

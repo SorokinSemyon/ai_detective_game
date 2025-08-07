@@ -10,17 +10,20 @@ class PromptExecutor:
         self.prompt = prompt
 
     def generate(self) -> dict:
-        sdk = YCloudML(folder_id=FOLDER_ID, auth=AUTH)
-        print("system log: running generation...")
-        result = sdk.models.completions("yandexgpt").configure(temperature=0.7).run(self.prompt.messages())
-        json_result = result[0].text.strip('` \n')
-
+        text = self.generate_text()
         try:
-            generated_data = json.loads(json_result.strip('` \n'))
+            generated_data = json.loads(text.strip('` \n'))
         except:
             generated_data = {
                 "error": "Не удалось обработать ответ модели",
-                "raw_response": json_result
+                "raw_response": text
             }
 
         return generated_data
+
+    def generate_text(self):
+        sdk = YCloudML(folder_id=FOLDER_ID, auth=AUTH)
+        print("system log: running generation...")
+        result = sdk.models.completions("yandexgpt").configure(temperature=0.7).run(self.prompt.messages())
+        text_result = result[0].text.strip('` \n')
+        return text_result
