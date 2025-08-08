@@ -1,29 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import asyncio
 from game_handler import GameHandler
 
 
 class ConsoleIO:
-    def output(self, message: str):
+    async def output(self, message: str):
         print(message)
 
-    def input(self, prompt: str = "") -> str:
+    async def input(self, prompt: str = "") -> str:
         return input(prompt)
 
 
-if __name__ == "__main__":
+async def main():
     io = ConsoleIO()
-    username = io.input("Введите username: ")
+    username = input("Введите username: ")
     handler = GameHandler(io, username)
 
     while True:
-        user_info = handler.users_data.get_user_info(username)
-        current_step = "unknown_user" if user_info is None else user_info.step
+        user_input = await io.input("> ")
+        await handler.process(user_input)
 
-        if current_step in ["unknown_user"]:
-            action = None
-        else:
-            action = io.input(f"({current_step}) > ")
 
-        handler.process(action)
+if __name__ == "__main__":
+    asyncio.run(main())

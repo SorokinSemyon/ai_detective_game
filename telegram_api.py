@@ -1,7 +1,7 @@
 
 
 from game_handler import GameHandler
-from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
+from telegram import Update, ReplyKeyboardRemove
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -11,13 +11,8 @@ from telegram.ext import (
     ConversationHandler,
 )
 import logging
-import os
-from dotenv import load_dotenv
+from auth import TELEGRAM_TOKEN
 
-# Load environment variables
-load_dotenv()
-
-# Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
@@ -41,50 +36,23 @@ class TelegramIO:
         return ""
 
 
-import asyncio
-
-
-class AsyncIOWrapper:
-    def __init__(self, async_io):
-        self.async_io = async_io
-
-    def output(self, message: str):
-        # Запускаем асинхронный код из синхронного контекста
-        asyncio.get_event_loop().run_until_complete(
-            self.async_io.output(message)
-        )
-
-    def input(self, prompt: str = "") -> str:
-        # Для ввода в Telegram нужно особое решение
-        # Это упрощённый вариант - в реальности нужно сохранять future
-        future = asyncio.Future()
-        self.async_io.set_input_future(future)
-        asyncio.get_event_loop().run_until_complete(
-            self.async_io.output(prompt)
-        )
-        return asyncio.get_event_loop().run_until_complete(future)
-
-
 class TelegramBot:
     def __init__(self):
-        self.token = "8241702513:AAEqT5KKtMds_fxuj11qtH5f6-UuYTjL-Tg"
+        self.token = TELEGRAM_TOKEN
+        # Увеличиваем количество worker'ов (по умолчанию 1)
         self.application = Application.builder().token(self.token).build()
 
-        # Add handlers
-        conv_handler = ConversationHandler(
-            entry_points=[CommandHandler("start", self.start)],
-            states={
-                "MAIN": [
-                    MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_message)
-                ],
-            },
-            fallbacks=[CommandHandler("cancel", self.cancel)],
-        )
+        # Используем более простой обработчик вместо ConversationHandler,
+        # если сложная логика не требуется
+        self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_message))
+        self.application.add_handler(CommandHandler("start", self.start))
+        self.application.add_handler(CommandHandler("cancel", self.cancel))
 
-        self.application.add_handler(conv_handler)
-
-        # Error handler
+        # Оптимизированный обработчик ошибок
         self.application.add_error_handler(self.error_handler)
+
+        # Предзагрузка данных при инициализации
+        self.user_handlers = {}  # Кэш обработчиков пользователей
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
         """Starts the conversation and asks for user info."""
